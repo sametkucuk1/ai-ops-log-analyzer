@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-ops-log-analyzer
+  labels:
+    app: ai-ops-log-analyzer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-ops-log-analyzer
+  template:
+    metadata:
+      labels:
+        app: ai-ops-log-analyzer
+    spec:
+      containers:
+      - name: analyzer-container
+        image: sametkucuk/ai-ops-log-analyzer:latest
+        imagePullPolicy: Always
