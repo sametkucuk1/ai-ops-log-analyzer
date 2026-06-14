@@ -16,7 +16,7 @@ REQUEST_COUNTER = Counter(
 # 2. GEMINI GÜVENLİK AYARI (TOKEN KORUMASI)
 # Ortam değişkenlerinde gerçek anahtar yoksa sistem tamamen BEDAVA modda çalışır
 API_KEY = os.environ.get("AI_API_KEY", "")
-MOCK_MODE = API_KEY == "" or API_KEY == "mock"
+MOCK_MODE = True
 
 print("🚀 HTTP Log Streamer ve Prometheus Metrik Sunucusu Baslatildi...", flush=True)
 
