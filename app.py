@@ -1,35 +1,48 @@
-import logging
-import random
 import time
-import sys
+import random
+import os
+from google import genai
 
-# Log ayarları (Terminal ekranına anında basılması için)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
+API_KEY = os.environ.get("AI_API_KEY", "")
 
-logger = logging.getLogger("LogWhisperer")
+print(" HTTP Log Streamer Baslatildi...", flush=True)
 
-ERROR_MESSAGES = [
-    "Database connection timeout after 3000ms.",
-    "Failed to flush redis cache: Out of memory.",
-    "User authentication failed: Invalid token signature.",
-    "Internal Server Error: NullPointerException in user_service.py:42",
-    "API gateway routing error: Service unavailable."
+METHODS = ["GET", "POST", "PUT", "DELETE"]
+PATHS = ["/api/v1/users", "/login", "/health", "/api/v1/products", "/checkout"]
+ERROR_POOL = [
+    "500 Internal Server Error: Database connection lost.",
+    "500 Internal Server Error: Redis connection refused.",
+    "500 Internal Server Error: NullPointerException in Auth Service."
 ]
 
-logger.info("LogWhisperer App has started successfully!")
-
 while True:
-    dice = random.random()
+    zar = random.randint(1, 100)
     
-    if dice < 0.10:
-        logger.error(random.choice(ERROR_MESSAGES))
-    elif dice < 0.15:
-        logger.critical("SYSTEM CRASH: Core memory dump failed. Unrecoverable state!")
+    if zar <= 85:
+        method = random.choice(METHODS)
+        path = random.choice(PATHS)
+        print(f"[INFO] 127.0.0.1 - - {method} {path} HTTP/1.1 200 OK", flush=True)
     else:
-        logger.info(f"Healthy request processed. Response time: {random.randint(10, 150)}ms")
+        secilen_hata = random.choice(ERROR_POOL)
+        method = random.choice(METHODS)
+        path = random.choice(PATHS)
         
-    time.sleep(2)
+        print("\n------------------------------------------------------------", flush=True)
+        print(f"[ERROR] 127.0.0.1 - - {method} {path} HTTP/1.1 {secilen_hata}", flush=True)
+        print("[INFO] Hata analizi icin Gemini API'ye baglaniliyor...", flush=True)
+        
+        if not API_KEY or API_KEY == "":
+            print("[WARN] AI_API_KEY bulunamadi! Yapay zeka analizi atlaniyor.", flush=True)
+        else:
+            try:
+                client = genai.Client(api_key=API_KEY)
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=f"Sen kidemli bir DevOps muhendisisin. Su HTTP 500 hatasini analiz et ve cok kisa, tek satirlik bir cozum onerisi yaz: {secilen_hata}"
+                )
+                print(f"GEMINI ANALIZI:\n{response.text}", flush=True)
+            except Exception as e:
+                print(f"[ERROR] Gemini API cagrisi basarisiz oldu: {str(e)}", flush=True)
+        print("------------------------------------------------------------\n", flush=True)
+                
+    time.sleep(4)

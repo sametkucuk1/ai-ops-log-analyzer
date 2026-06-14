@@ -18,3 +18,9 @@ spec:
       - name: analyzer-container
         image: sametkucuk/ai-ops-log-analyzer:latest
         imagePullPolicy: Always
+        env:
+        - name: AI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-api-key
+              key: AI_API_KEY
