@@ -1,1 +1,2 @@
 google-genai
+prometheus_client
