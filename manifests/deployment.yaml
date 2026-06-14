@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ai-ops-log-analyzer
+  namespace: default
   labels:
     app: ai-ops-log-analyzer
 spec:
@@ -15,12 +16,49 @@ spec:
         app: ai-ops-log-analyzer
     spec:
       containers:
-      - name: analyzer-container
-        image: sametkucuk/ai-ops-log-analyzer:latest
+      - name: log-streamer
+        image: sametbro/ai-ops-log-analyzer:latest
         imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: metrics
         env:
         - name: AI_API_KEY
           valueFrom:
             secretKeyRef:
-              name: ai-api-key
-              key: AI_API_KEY
+              name: gemini-secret
+              key: api-key
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-ops-log-analyzer-svc
+  namespace: default
+  labels:
+    app: ai-ops-log-analyzer
+    release: prometheus
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: metrics
+  selector:
+    app: ai-ops-log-analyzer
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ai-ops-log-analyzer-monitor
+  namespace: default
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: ai-ops-log-analyzer
+  endpoints:
+  - port: metrics
+    interval: 10s
+    path: /metrics
